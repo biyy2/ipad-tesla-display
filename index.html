@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="no-referrer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233db8a8'/%3E%3C/svg%3E">
+  <title>ParkDesk 화면</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="top" id="page-head">
+      <div>
+        <p class="eyebrow">ParkDesk</p>
+        <h1 id="page-title">테슬라 보조 화면</h1>
+      </div>
+      <p class="sub" id="page-sub">주차(P) 상태에서만 사용하세요. 주행 중에는 열지 마세요.</p>
+    </header>
+
+    <section id="view-home" class="view">
+      <p class="lead">아이패드에서 만든 화면을, 같은 휴대폰 핫스팟에 있는 테슬라 브라우저로 보냅니다. 중계 서버는 쓰지 않습니다.</p>
+      <div class="role-grid">
+        <a class="role-card" href="?role=ipad">
+          <span class="role-kicker">보내는 쪽</span>
+          <span class="role-name">iPad</span>
+          <span class="role-desc">테스트 패턴, 화이트보드, 메모, 사진을 캔버스로 그려 테슬라에 보냅니다.</span>
+        </a>
+        <a class="role-card" href="?role=tesla">
+          <span class="role-kicker">받는 쪽</span>
+          <span class="role-name">테슬라</span>
+          <span class="role-desc">아이패드 화면을 차량 디스플레이로 봅니다.</span>
+        </a>
+      </div>
+      <p class="hint foot-link"><a href="?role=pc">노트북 화면 공유 (이전 방식)</a></p>
+    </section>
+
+    <section id="view-ipad" class="view hidden">
+      <div class="status-row" id="sender-status">브로커 연결 중…</div>
+      <section class="card highlight">
+        <h2>페어링 코드</h2>
+        <p class="code-xl" id="sender-code">------</p>
+        <p class="hint">테슬라 브라우저에서 받는 쪽을 열고 이 코드를 입력하세요. 코드는 브로커가 끊겨도 유지됩니다.</p>
+        <div class="actions">
+          <button type="button" class="btn" id="btn-new-code">코드 다시 만들기</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>해상도</h2>
+        <p class="hint">테슬라 화면은 CSS 1306×816, dpr 1.96 으로 측정됐습니다. 기본은 1920×1200 입니다.</p>
+        <div class="mode-row" id="res-row" role="group" aria-label="해상도"></div>
+      </section>
+
+      <section class="card">
+        <h2>내용</h2>
+        <div class="mode-row" role="group" aria-label="내용">
+          <button type="button" class="btn mode-btn is-on" data-source="pattern">테스트 패턴</button>
+          <button type="button" class="btn mode-btn" data-source="board">화이트보드</button>
+          <button type="button" class="btn mode-btn" data-source="notes">메모</button>
+          <button type="button" class="btn mode-btn" data-source="image">사진</button>
+        </div>
+        <div id="board-tools" class="actions hidden">
+          <button type="button" class="btn" id="btn-clear-board">지우기</button>
+        </div>
+        <label id="image-tools" class="file-btn hidden">
+          사진 선택
+          <input id="image-file" type="file" accept="image/*">
+        </label>
+        <label class="lbl hidden" id="notes-label" for="notes-input">메모</label>
+        <textarea id="notes-input" class="input notes-input hidden" rows="4" placeholder="여기에 적으면 큰 글씨로 테슬라에 보입니다"></textarea>
+        <div class="canvas-wrap">
+          <canvas id="stage-canvas" width="1920" height="1200"></canvas>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>보내는 상태</h2>
+        <dl id="sender-stats" class="kv"></dl>
+      </section>
+
+      <section class="card">
+        <h2>테슬라 결과</h2>
+        <p class="hint" id="sender-tesla-hint">아직 테슬라 결과가 없습니다.</p>
+        <dl id="sender-tesla-list" class="kv"></dl>
+      </section>
+
+      <section class="card">
+        <h2>로그</h2>
+        <pre id="sender-log" class="log"></pre>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="btn-copy-sender">결과 JSON 복사</button>
+          <button type="button" class="btn" id="btn-download-sender">JSON 파일로 저장</button>
+        </div>
+        <textarea id="sender-json" class="json-box" readonly rows="8" aria-label="결과 JSON"></textarea>
+      </section>
+    </section>
+
+    <section id="view-tesla" class="view hidden">
+      <div id="tesla-setup">
+        <div class="status-row" id="tesla-status">대기 중</div>
+        <section id="tesla-photo" class="card photo-card hidden" aria-label="사진으로 남길 요약">
+          <h2>사진으로 남길 요약</h2>
+          <p class="photo-lead">연결이 되지 않았습니다. 이 칸을 휴대폰으로 찍으세요.</p>
+          <div id="tesla-photo-body"></div>
+        </section>
+        <section class="card">
+          <h2>페어링</h2>
+          <p class="hint">아이패드에 표시된 6자리 코드를 입력하세요.</p>
+          <label class="lbl" for="join-code">페어링 코드</label>
+          <input id="join-code" class="input code-input" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="AB12CD">
+          <div class="actions">
+            <button type="button" class="btn btn-primary" id="btn-join">연결</button>
+            <button type="button" class="btn btn-ghost" id="btn-leave">끊기</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="stage">
+        <video id="tesla-video" autoplay muted playsinline webkit-playsinline></video>
+        <p id="tesla-video-empty" class="video-empty">아이패드 화면을 기다리는 중</p>
+        <div id="tesla-overlay" class="overlay hidden" aria-live="polite"></div>
+        <div class="stage-bar">
+          <button type="button" class="btn btn-primary" id="btn-fullscreen">전체 화면</button>
+          <button type="button" class="btn" id="btn-overlay">정보</button>
+        </div>
+      </div>
+
+      <section class="card">
+        <h2>로그</h2>
+        <pre id="tesla-log" class="log"></pre>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="btn-send-results" disabled>iPad로 결과 보내기</button>
+          <button type="button" class="btn" id="btn-copy-tesla">결과 JSON 복사</button>
+        </div>
+        <textarea id="tesla-json" class="json-box" readonly rows="6" aria-label="결과 JSON"></textarea>
+      </section>
+    </section>
+
+    <section id="view-pc" class="view hidden">
+      <div class="status-row" id="pc-status">브로커 연결 중…</div>
+      <section class="card highlight">
+        <h2>페어링 코드</h2>
+        <p class="code-xl" id="pc-code">------</p>
+        <p class="hint">테슬라에서 받는 쪽을 열고 이 코드를 입력한 뒤, 여기서 화면 공유를 시작하세요.</p>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="btn-share">화면 공유 시작</button>
+          <button type="button" class="btn btn-ghost" id="btn-stop-share">공유 중지</button>
+          <button type="button" class="btn" id="btn-pc-new-code">코드 다시 만들기</button>
+        </div>
+      </section>
+      <section class="card">
+        <h2>로그</h2>
+        <pre id="pc-log" class="log"></pre>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="btn-copy-pc">결과 JSON 복사</button>
+          <button type="button" class="btn" id="btn-download-pc">JSON 파일로 저장</button>
+        </div>
+        <textarea id="pc-json" class="json-box" readonly rows="8" aria-label="결과 JSON"></textarea>
+      </section>
+    </section>
+  </div>
+  <script src="./peerjs.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
